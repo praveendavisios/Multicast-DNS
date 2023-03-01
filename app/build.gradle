@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-android'
+
 }
 
 android {
@@ -33,6 +36,11 @@ android {
     buildFeatures {
         viewBinding true
     }
+    dataBinding {
+        buildFeatures {
+            enabled true
+        }
+    }
 }
 
 dependencies {
@@ -49,5 +57,8 @@ dependencies {
 
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
+
+    // LiveData & ViewModel
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
 
 }

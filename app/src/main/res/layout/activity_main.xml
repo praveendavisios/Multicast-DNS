@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.praveen.multicast_dns.ui.MainActivityViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center"
     android:padding="20dp"
-    android:orientation="horizontal"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/register"
@@ -15,6 +22,7 @@
             android:background="@drawable/rect"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            android:onClick="@{()->viewModel.onRegisterButtonClicked()}"
             app:layout_constraintRight_toRightOf="parent"
             android:text="Publish" />
 
@@ -27,6 +35,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:background="@drawable/round"
+            android:onClick="@{()->viewModel.onScanButtonClicked()}"
             android:text="SCAN" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -40,6 +49,8 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
 
 
 

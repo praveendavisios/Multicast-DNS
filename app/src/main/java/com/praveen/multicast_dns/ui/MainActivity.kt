@@ -3,13 +3,14 @@ package com.praveen.multicast_dns.ui
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.praveen.multicast_dns.R
 import com.praveen.multicast_dns.adapters.DataAdapter
+import com.praveen.multicast_dns.databinding.ActivityMainBinding
 import com.praveen.multicast_dns.listeners.ScannerListener
 import com.praveen.multicast_dns.listeners.RegistrationListener
 import com.praveen.multicast_dns.listeners.ResolvedListener
@@ -17,13 +18,12 @@ import com.praveen.multicast_dns.model.ScannedData
 import com.praveen.multicast_dns.utils.Constants
 import com.praveen.multicast_dns.utils.Messages
 import com.praveen.multicast_dns.utils.NSDService
+import com.praveen.multicast_dns.viemodel.ViewModelFactory
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.ArrayList
 
-class MainActivity : AppCompatActivity(), View.OnClickListener,
+class MainActivity : AppCompatActivity(),
     RegistrationListener.Registration, ScannerListener.ScanDiscovery, ResolvedListener.ResolveListene {
-    var scanner: Button? = null
-    var btn_publish: Button? = null
-    var recyclerView: RecyclerView? = null
     private var mNsdManager: NsdManager? = null
     private var isServicePublished = false
     private var isDisCoveryRunning = false
@@ -33,26 +33,41 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     var disCoveryListener: ScannerListener = ScannerListener(this)
     var mRegistrationListener: RegistrationListener = RegistrationListener(this)
     private var scandata: MutableList<ScannedData> = ArrayList<ScannedData>()
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        viewModel = ViewModelProviders.of(this, ViewModelFactory(this)).get(MainActivityViewModel::class.java)
+        binding.viewModel = viewModel
+
         mNsdManager = NSDService.initializeNSDManger(this)
-        scanner = findViewById(R.id.scan)
-        btn_publish = findViewById(R.id.register)
-        recyclerView = findViewById(R.id.recycler_view)
-        recyclerView!!.layoutManager = LinearLayoutManager(this)
-        recyclerView!!.setHasFixedSize(true)
+        recycler_view!!.layoutManager = LinearLayoutManager(this)
+        recycler_view!!.setHasFixedSize(true)
         scanDataAdapter = DataAdapter(scandata)
-        recyclerView!!.adapter = scanDataAdapter
-        if (btn_publish != null) {
-            btn_publish!!.setOnClickListener(this)
-        }
-        if (scanner != null) {
-            scandata.clear()
-            scanDataAdapter!!.notifyDataSetChanged()
-            scanner!!.setOnClickListener(this)
-        }
+        recycler_view!!.adapter = scanDataAdapter
+
+
+        viewModel.registerBtn.observe(this, Observer {
+            if (!it) return@Observer
+            isPublishedClicked = true
+            isScanClicked = false
+            registerService(Constants.PORT)
+
+        })
+
+        viewModel.scanBtn.observe(this, Observer {
+            if (!it) return@Observer
+            isPublishedClicked = false
+            isScanClicked = true
+            disCoverService()
+
+        })
+
     }
 
     override fun onPause() {
@@ -83,7 +98,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     fun disCoverService() {
         if (!isDisCoveryRunning) {
             isDisCoveryRunning = true
-            scanner!!.text = "Scanning...."
+            scan!!.text = "Scanning...."
             mNsdManager!!.discoverServices(
                 Constants.SERVICE_TYPE,
                 NsdManager.PROTOCOL_DNS_SD, disCoveryListener
@@ -122,20 +137,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         }
     }
 
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.register -> {
-                isPublishedClicked = true
-                isScanClicked = false
-                registerService(Constants.PORT)
-            }
-            R.id.scan -> if (scanner!!.text.toString().equals("SCAN", ignoreCase = true)) {
-                isPublishedClicked = false
-                isScanClicked = true
-                disCoverService()
-            }
-        }
-    }
 
     override fun onDeviceRegistration(message: String?) {
         Messages.showToast(this, message)
@@ -156,7 +157,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
                     scandata!!.add(data)
                     scandata = scandata.distinct().toMutableList()
                     scanDataAdapter!!.notifyDataSetChanged()
-                    scanner!!.text = "Scan"
+                    scan!!.text = "SCAN"
                 }
             }
         }
